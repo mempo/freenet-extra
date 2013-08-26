@@ -12,12 +12,14 @@
 # --- config ----
 config_version="$1"
 config_basedir_top="$HOME/verify_freenet"
-config_basedir="$config_basedir_top/$config_version"
 
 # --- functions ----
 
 script_error() {
 	echo "ERROR: There was a problem with this script, unable to do the verification." ; echo "" ; exit 1
+}
+verification_error() {
+	echo "ERROR: There was a problem, possibly verification FAILED - ready the information above and please report it (after censoring the logs so they do not reveal who YOU are by IPs/times/download speeds/user names/dir names/etc)" ; echo "" ; exit 1
 }
 
 # --- start ----
@@ -26,8 +28,16 @@ if [ -z "$HOME" ] ; then echo "The user HOME is not defined, please define this 
 
 if [ -z "$config_version" ] ; then
 	echo "Please declare the version to verify as argument to this script, e.g. 1453"	
+	echo "Freenet version:"
+	read config_version
+fi
+
+if [ -z "$config_version" ] ; then
+	echo "No valid version given"
 	script_error
 fi
+
+config_basedir="$config_basedir_top/$config_version"
 
 echo ""
 echo "---------------------------------"
@@ -105,7 +115,7 @@ else
 	read reply
 	if [ "$reply" != "y" ]
 	then
-		echo "You said to NOT continue (not deleting this directoru) - ok aborting (you can delete it manually and restart)"
+		echo "You said to NOT continue - ok, aborting."
 		script_error
 	fi
 	set -x
@@ -138,7 +148,7 @@ echo "--- Doing the MAIN VERIFICATION ---"
 
 ./verify-build || { echo "Error in verification?"; echo "-----" ; 
 	echo "*** IF the verification shows the files are DIFFERENT then please warn other users." ; 
-	echo " -----"; script_error; 
+	echo " -----"; verification_error; 
 }
 
 set +x
