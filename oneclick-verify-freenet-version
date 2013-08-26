@@ -9,6 +9,18 @@
 # Purpose: Verifying freenet binary builds (.jar) against binary backdoor
 # Method: Just wrap the verify-build with all needed setting up commands
 
+#
+# TODO - possible attacks
+#
+# Attack1) Hack one of the git sources that get executed e.g. the scripts.git,
+# in a way that will take over verification environment.
+#
+# Fix: show/post checksums of downloaded git before proceeding so
+# it can be proven retrospectivly there was a problem.
+#
+# Fix2: (better) provide expected checksums in some git and verify this
+# before *executing* anything that was downloaded.
+
 # --- config ----
 config_version="$1"
 config_basedir_top="$HOME/verify_freenet"
