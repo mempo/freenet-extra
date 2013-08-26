@@ -86,11 +86,25 @@ set -x
 mkdir -p "$config_basedir" || { echo "Can not create dir"; script_error; }
 cd "$config_basedir" || { echo "Can not enter dir"; script_error; }
 
+echo "Using following downloaded files:" > "$config_basedir/build-dependencies.log"
+
+echo "" ; echo "Downloading from git."
 git clone git://github.com/freenet/scripts.git || { echo "Can not download from git."; script_error; }
+	dir="scripts/" ; echo "Checksum (sha512 of sorted sha256deep) of dir $dir is:" | tee -a "$config_basedir/build-dependencies.log"
+	sha256deep -r "$dir" | sort | sha512sum | tee -a "$config_basedir/build-dependencies.log"
+	echo "" | tee -a "$config_basedir/build-dependencies.log"
 
+echo "" ; echo "Downloading from git."
 git clone git://github.com/freenet/fred-official.git || { echo "Can not download from git."; script_error; }
+	dir="fred-official/" ; echo "Checksum (sha512 of sorted sha256deep) of dir $dir is:" | tee -a "$config_basedir/build-dependencies.log"
+	sha256deep -r "$dir" | sort | sha512sum | tee -a "$config_basedir/build-dependencies.log"
+	echo "" | tee -a "$config_basedir/build-dependencies.log"
 
+echo "" ; echo "Downloading from git."
 git clone git://github.com/freenet/lib-pyFreenet-staging.git || { echo "Can not download from git."; script_error; }
+	dir="lib-pyFreenet-staging" ; echo "Checksum (sha512 of sorted sha256deep) of dir $dir is:" | tee -a "$config_basedir/build-dependencies.log"
+	sha256deep -r "$dir" | sort | sha512sum | tee -a "$config_basedir/build-dependencies.log"
+	echo "" | tee -a "$config_basedir/build-dependencies.log"
 
 cp scripts/freenetrc-sample ~/.freenetrc || { echo "Can not copy RC"; script_error; }
 
@@ -132,10 +146,9 @@ wget https://downloads.freenetproject.org/alpha/freenet-ext.jar -O FreenetReleas
 wget http://www.bouncycastle.org/download/bcprov-jdk15on-149.jar -O FreenetReleased/bcprov.jar || { echo "Can not download bcprov "; script_error; }
 wget http://amphibian.dyndns.org/flogmirror/mykey.gpg -O toad.gpg || { echo "Can not download GPG key "; script_error; }
 
-echo "Using following downloaded files" > "$config_basedir/build-dependencies.log"
 sha512sum FreenetReleased/freenet-ext.jar | tee -a "$config_basedir/build-dependencies.log"
 sha512sum FreenetReleased/bcprov.jar | tee -a "$config_basedir/build-dependencies.log"
-sha512sum FreenetReleased/*.gpg | tee -a "$config_basedir/build-dependencies.log"
+sha512sum *.gpg | tee -a "$config_basedir/build-dependencies.log"
 
 gpg --import toad.gpg || { echo "Can not import GPG key"; script_error; }
 
@@ -156,13 +169,20 @@ echo "--- Doing the MAIN VERIFICATION ---"
 }
 
 set +x
+
+echo "--- DEPENDENCIES ---"
+cat "$config_basedir/build-dependencies.log"
+echo "--------------------"
+
 echo ""
 echo "You should paste results of the verification to other users"
 echo "In Freenet: on FMS, Sone, Frost if you can"
+echo "  1) Post the > < + - differences lines if any above"
+echo "  2) Post the DEPENDENCIES summary above with checksums and the checksum of your .jar"
+echo "  3) Post the information was the verification successfull or not, by quoting entire line"
 echo ""
-echo "Please REMEMBER, posting above LOG *will* de-anonymize you unless in TOR'red VM"
+echo "You could also copy/paste entire text above, but best from VM on TOR,"
+echo "please REMEMBER, posting *full* above LOG *will* de-anonymize you "
 echo "(by times/speeds of downloads, also username etc)"
-echo "But you could edit it manually, or just left the differences > < + - if any."
-echo "Or just write if the build checked out, and paste us the finall checksums."
-echo ""
+echo "so you might want to only post the part 1) 2) 3)."
 
