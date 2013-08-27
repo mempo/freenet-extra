@@ -56,6 +56,8 @@ echo "---------------------------------"
 echo "Will verify Freenet build version $config_version"
 echo "Using directory $config_basedir [PRIVATE]" # private, it might be absolute e.g. with username
 echo ""
+echo "HINT: Usage in batch SCRIPT: this_script_name 1453 --no-confirmation-start --no-confirmation-DELETE"
+echo ""
 echo "We will use:"
 echo "  * download over clear-internet (your IP is seen by ISP and everyone around) !!!"
 echo "  * also download from Freenet (need to have Freenet running)"
@@ -63,7 +65,8 @@ echo "it will be visible to others that you (IP) are verifing freenet (unless e.
 
 if [ "$2" != "--no-confirmation-start" ] 
 then
-	echo "Is that ok? Continue? (y/n)"
+	echo "HINT for SCRIPT: use argument --no-confirmation-start on position 2 to skip this question."
+	echo "Is that ok? to skip this question) Continue? (y/n)"
 	read reply
 	if [ "$reply" != "y" ]
 	then
@@ -79,12 +82,16 @@ echo "---------------------------------"
 if [ -d "$config_basedir" ] ; then
 	echo "The directory $config_basedir exists, probably from previous verification."
 	echo "DELETE THIS DIRECTORY? Write word 'del' if you agree or else to cancel." 
-	echo "Delete? (del/n)"
-	read reply
-	if [ "$reply" != "del" ]
-	then
-		echo "You said to NOT continue (not deleting this directory) - ok aborting (you can delete it manually and restart)"
-		script_error
+
+	if [ "$3" != "--no-confirmation-DELETE" ] ; then
+		echo "HINT for SCRIPT: use argument --no-confirmation-DELETE on position 3 to skip this question."
+		echo "Delete? (del/n)"
+		read reply
+		if [ "$reply" != "del" ]
+		then
+			echo "You said to NOT continue (not deleting this directory) - ok aborting (you can delete it manually and restart)"
+			script_error
+		fi
 	fi
 	echo "Ok, DELETING this directory"
 	rm -rf "$config_basedir" || { echo "Can not delete old dir"; script_error; }
@@ -118,26 +125,36 @@ git clone git://github.com/freenet/lib-pyFreenet-staging.git || { echo "Can not 
 	sha256deep -r "$dir" | sort | sha512sum | tee -a "$config_basedir/build-dependencies.log"
 	echo "" | tee -a "$config_basedir/build-dependencies.log"
 
+
+# --- prepare freenetrc ----
 cp scripts/freenetrc-sample ~/.freenetrc || { echo "Can not copy RC"; script_error; }
 
-if [ -r "$HOME/freenet-PATCH/verify-config-path-fix.sh" ] ; then # TODO remove after this script is part of released freenet XXX
-	echo "******"; echo "Using YOUR, LOCAL PATCH..."; echo "******"
-	cp "$HOME/freenet-PATCH/verify-config-path-fix.sh" scripts/  # copy your local script
+# get script to make patches in .freenetrc absolute
+script="verify-config-path-absolute" ; 
+script_local="$HOME/freenet-PATCH/$script" ; # local copy for when it isn't released or verifying version <=1453
+if [ -r "$script_local" ] ; then 
+	echo "Found local script $script_local [PRIVATE] ***"
+	if [ ! -r "scripts/$script" ] ; then # ok, we have a local script and there isn't one from bit so let's use that
+	cp "$script_local" "scripts/" || { echo "Can not copy the local script $script_local" ; script_error; }  # copy your local script
+	fi
 fi
 
-
-config_script="./scripts/verify-config-path-fix.sh"
+# use the script:
+config_script="./scripts/$script"
 if [ -x "$config_script" ] ; then
-	$config_script || { echo "Can not configure the .freenetrc"; script_error; } # execute it
+	$config_script || { echo "Can not configure the .freenetrc with script $config_script"; script_error; } # execute it
 else
 	set +x
 	echo ""
-	echo "The configuration script is not used here, you need to yourself edit file ~/.freenetrc"
-	echo "... search for variables releaseDir and fredDir and in each replace the ../ with absolute path"
-	echo "...of the directory where we build freenet, like $config_basedir/ "
-	echo "...this is very easy, or ask us for support if any questions"
-	echo "...Enter y when the file was edited by you or n to cancel."
-	echo "Did you edited now this file yet? (y/n) (n will cancel)"
+	echo "The configuration script $script is not available as executable here (from git) "
+	echo "...nor in $script_local"
+	echo "Therefore you need to yourself edit NOW the file ~/.freenetrc in following way:"
+	echo "...search for variables (freenetRoot) or (releaseDir and fredDir) depending on version" 
+	echo "...and in each replace the ../ or the /home/freenet/ with absolute path of"
+	echo "...the directory where we build freenet: $config_basedir/ "
+	echo "This is very easy, or ask us for support if any questions"
+	echo "Enter y when the file was edited by you or n to cancel."
+	echo "Are you NOW done with editing this file? (y/n) (n will cancel)"
 	read reply
 	if [ "$reply" != "y" ]
 	then
