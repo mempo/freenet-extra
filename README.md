@@ -7,7 +7,7 @@ Our script will download and verify a freenet version (compare the build from do
 
 Purpose: Verifying freenet binary builds (.jar) against binary backdoor.
 
-Run this script oneclick-verify-freenet-versionh to instantly download and verify Freenet builds
+Run this script oneclick-verify-freenet-version to instantly download and verify Freenet builds
 with the version published in Freenet's auto updater.
 
 Example:
