@@ -9,3 +9,6 @@ with the version published in Freenet's auto updater.
 ./oneclick-verify-freenet-version 1453
 
 
+
+
+Any suggestions are welcome.  
