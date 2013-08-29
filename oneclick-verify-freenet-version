@@ -180,7 +180,7 @@ gpg --import toad.gpg || { echo "Can not import GPG key"; script_error; }
 cd lib-pyFreenet-staging  || { echo "Can not enter pyFreenet dir "; script_error; }
 python setup.py install --user || { echo "Can not setup pyFreenet"; script_error; }
 
-export PATH=$PATH:/home/fn_verify/.local/bin
+export PATH=$PATH:"$HOME/.local/bin"
 
 cd ../
 cd scripts/
