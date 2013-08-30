@@ -39,9 +39,20 @@ verification_error() {
 if [ -z "$HOME" ] ; then echo "The user HOME is not defined, please define this variable in env."; script_error; fi
 
 if [ -z "$config_version" ] ; then
-	echo "Please declare the version to verify as argument to this script, e.g. 1453"	
-	echo "Freenet version:"
-	read config_version
+	config_version="current"
+	#echo "Please declare the version to verify as argument to this script, e.g. current"
+	#echo "Freenet version:"
+	#read config_version
+fi
+
+if [ "$config_version" != "current" ] ; then
+	echo "No support for choosing version to verify (yet). We will verify current git version. Continue? (y/n)"
+	if [ "$reply" != "y" ]
+	then
+		echo "You said to NOT continue - ok, aborting."
+		script_error
+	fi
+	config_version="current" # version changes are not supported now
 fi
 
 if [ -z "$config_version" ] ; then
@@ -56,7 +67,7 @@ echo "---------------------------------"
 echo "Will verify Freenet build version $config_version"
 echo "Using directory $config_basedir [PRIVATE]" # private, it might be absolute e.g. with username
 echo ""
-echo "HINT: Usage in batch SCRIPT: this_script_name 1453 --no-confirmation-start --no-confirmation-DELETE"
+echo "HINT: Usage in batch SCRIPT: this_script_name current --no-confirmation-start --no-confirmation-DELETE"
 echo ""
 echo "We will use:"
 echo "  * download over clear-internet (your IP is seen by ISP and everyone around) !!!"
@@ -130,7 +141,7 @@ git clone git://github.com/freenet/lib-pyFreenet-staging.git || { echo "Can not 
 cp scripts/freenetrc-sample ~/.freenetrc || { echo "Can not copy RC"; script_error; }
 
 # get script to make patches in .freenetrc absolute
-script="verify-config-path-absolute" ; 
+script="set-freenetrc-base" ; 
 script_local="$HOME/freenet-PATCH/$script" ; # local copy for when it isn't released or verifying version <=1453
 if [ -r "$script_local" ] ; then 
 	echo "Found local script $script_local [PRIVATE] ***"
@@ -142,6 +153,7 @@ fi
 # use the script:
 config_script="./scripts/$script"
 if [ -x "$config_script" ] ; then
+	echo "Using the freenetrc config script"
 	$config_script || { echo "Can not configure the .freenetrc with script $config_script"; script_error; } # execute it
 else
 	set +x
@@ -163,6 +175,9 @@ else
 	fi
 	set -x
 fi
+echo "Done with freenetrc"
+
+echo "" ; echo "Proceeding with main verification preparations."
 
 set -x
 
@@ -182,8 +197,7 @@ python setup.py install --user || { echo "Can not setup pyFreenet"; script_error
 
 export PATH=$PATH:"$HOME/.local/bin"
 
-cd ../
-cd scripts/
+cd ../scripts/ || { echo "Can not enter scripts directory." ; script_error; }
 
 echo ""
 echo "--- Doing the MAIN VERIFICATION ---"
