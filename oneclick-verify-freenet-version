@@ -136,6 +136,8 @@ git clone git://github.com/freenet/lib-pyFreenet-staging.git || { echo "Can not 
 	sha256deep -r "$dir" | sort | sha512sum | tee -a "$config_basedir/build-dependencies.log"
 	echo "" | tee -a "$config_basedir/build-dependencies.log"
 
+# change dir name to work with freenetrc
+mv fred-official fred || { echo "Can rename fred-official folder"; script_error; }
 
 # --- prepare freenetrc ----
 cp scripts/freenetrc-sample ~/.freenetrc || { echo "Can not copy RC"; script_error; }
@@ -191,6 +193,7 @@ sha512sum FreenetReleased/bcprov.jar | tee -a "$config_basedir/build-dependencie
 sha512sum *.gpg | tee -a "$config_basedir/build-dependencies.log"
 
 gpg --import toad.gpg || { echo "Can not import GPG key"; script_error; }
+gpg --recv-keys 7EDBA5E0 || { echo "Can not import GPG key"; script_error; }
 
 cd lib-pyFreenet-staging  || { echo "Can not enter pyFreenet dir "; script_error; }
 python setup.py install --user || { echo "Can not setup pyFreenet"; script_error; }
