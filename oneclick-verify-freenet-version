@@ -137,7 +137,7 @@ git clone git://github.com/freenet/lib-pyFreenet-staging.git || { echo "Can not 
 	echo "" | tee -a "$config_basedir/build-dependencies.log"
 
 # change dir name to work with freenetrc
-mv fred-official fred || { echo "Can rename fred-official folder"; script_error; }
+mv fred-official fred || { echo "Can't rename fred-official folder"; script_error; }
 
 # --- prepare freenetrc ----
 cp scripts/freenetrc-sample ~/.freenetrc || { echo "Can not copy RC"; script_error; }
